@@ -27,13 +27,29 @@ services:
       interval: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   api:
     build: .
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://app:app@postgres:5432/flashsale
+      REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_PER_SEC: "20"
+      CACHE_TTL_SECONDS: "2"
+      IDEMPOTENCY_TTL_SECONDS: "300"
     ports:
       - "8000:8000"
 
