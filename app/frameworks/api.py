@@ -28,6 +28,19 @@ def rate_limiter(x_user_id: str = Header(...)):
 
     if not allowed:
         raise HTTPException(status_code=429, detail="rate limit exceeded")
+    
+def idempotency_guard(
+    x_user_id: str = Header(...),
+    idempotency_key: str = Header(..., alias="Idempotency-Key"),
+) -> str:
+    key = f"idemp:{x_user_id}:{idempotency_key}"
+
+    cached = redis_client.idem_get(key)
+    if cached is not None:
+        # short-circuit: kembalikan response lama
+        raise HTTPException(status_code=200, detail=cached)
+
+    return key
 
 
 @app.post("/events")
@@ -43,15 +56,23 @@ def create_event(body: CreateEventBody):
 def reserve(
     event_id: str,
     x_user_id: str = Header(...),
+    idemp_key: str = Depends(idempotency_guard),
     _=Depends(rate_limiter),
 ):
     try:
         event = ReserveTicket(repo).execute(event_id)
-        return event.__dict__
+        response = event.__dict__
+
+        redis_client.idem_set(idemp_key, response)
+        return response
+
     except EventNotFound:
         raise HTTPException(404, "not found")
+
     except SoldOut:
-        return {"status": "sold_out"}
+        response = {"status": "sold_out"}
+        redis_client.idem_set(idemp_key, response)
+        return response
 
 
 @app.get("/events/{event_id}")
