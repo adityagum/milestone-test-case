@@ -64,3 +64,6 @@ class RedisClient:
         if count == 1:
             self._r.expire(key, 1)
         return count, (count <= limit_per_sec)
+    
+_settings = load_redis_settings()
+redis_client = RedisClient(_settings)
