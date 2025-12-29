@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Poetry
+.venv/
+.env
+
+# Pytest
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
