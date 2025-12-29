@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import os
 
-from app.adapters.postgres_repo import PostgresEventRepository
+from app.adapters.in_memory_repo import InMemoryEventRepository
 from app.usecases.create_event import CreateEvent
 from app.usecases.reserve_ticket import ReserveTicket
 from app.usecases.get_event import GetEvent
@@ -14,12 +13,8 @@ class CreateEventBody(BaseModel):
     stock: int
 
 
-repo = PostgresEventRepository(
-    os.environ["DATABASE_URL"]
-)
-
+repo = InMemoryEventRepository()
 app = FastAPI()
-
 
 @app.post("/events")
 def create_event(body: CreateEventBody):
@@ -28,7 +23,6 @@ def create_event(body: CreateEventBody):
         return event.__dict__
     except InvalidStock:
         raise HTTPException(400, "invalid stock")
-
 
 @app.post("/events/{event_id}/reserve")
 def reserve(event_id: str):
@@ -39,7 +33,6 @@ def reserve(event_id: str):
         raise HTTPException(404, "not found")
     except SoldOut:
         return {"status": "sold_out"}
-
 
 @app.get("/events/{event_id}")
 def get_event(event_id: str):

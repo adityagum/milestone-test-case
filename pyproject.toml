@@ -1,16 +1,21 @@
-[build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "flashsale"
 version = "0.1.0"
 description = "Flash sale application"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "psycopg[binary] (>=3.3.2,<4.0.0)",
+  "pydantic"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov"
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-
-[project.optional-dependencies]
-dev = ["pytest", "pytest-cov"]
