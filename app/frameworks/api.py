@@ -20,18 +20,14 @@ repo = PostgresEventRepository(os.environ["DATABASE_URL"])
 app = FastAPI()
 
 
-def rate_limiter(x_user_id: str = Header(default="anonymous")):
+def rate_limiter(x_user_id: str = Header(...)):
     limit = int(os.getenv("RATE_LIMIT_PER_SEC", "20"))
-    current_second = int(time.time())
+    key = f"rl:{x_user_id}"
 
-    key = f"rl:{x_user_id}:{current_second}"
-    count = redis_client.incr(key)
+    count, allowed = redis_client.rate_limit_hit(key, limit)
 
-    if count == 1:
-        redis_client.expire(key, 1)
-
-    if count > limit:
-        raise HTTPException(429, "rate limit exceeded")
+    if not allowed:
+        raise HTTPException(status_code=429, detail="rate limit exceeded")
 
 
 @app.post("/events")
@@ -46,7 +42,7 @@ def create_event(body: CreateEventBody):
 @app.post("/events/{event_id}/reserve")
 def reserve(
     event_id: str,
-    x_user_id: str = Header(default="anonymous"),
+    x_user_id: str = Header(...),
     _=Depends(rate_limiter),
 ):
     try:
