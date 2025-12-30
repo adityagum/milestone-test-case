@@ -1,4 +1,5 @@
 import os
+
 from app.adapters.kafka_consumer import build_consumer
 from app.adapters.postgres_repo import InventoryRepository
 from app.adapters.kafka_producer import InventoryProducer
@@ -14,6 +15,7 @@ def main():
     producer = InventoryProducer(
         os.environ["KAFKA_BOOTSTRAP_SERVERS"]
     )
+
     usecase = ReserveInventory(repo, producer)
 
     for msg in consumer:
