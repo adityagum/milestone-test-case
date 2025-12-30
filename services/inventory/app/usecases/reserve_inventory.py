@@ -23,25 +23,25 @@ class ReserveInventory:
         # 3️⃣ Mark processed
         self.repo.mark_processed(order_id)
 
-        # 4️⃣ Emit result event
-        now = datetime.now(timezone.utc)
+        # # 4️⃣ Emit result event
+        # now = datetime.now(timezone.utc)
 
-        if success:
-            event = TicketReserved(
-                event_id=event_id,
-                order_id=order_id,
-                occurred_at=now,
-            )
-            self.producer.publish_reserved(
-                event.model_dump(mode="json")
-            )
-        else:
-            event = TicketReservationFailed(
-                event_id=event_id,
-                order_id=order_id,
-                reason="sold_out",
-                occurred_at=now,
-            )
-            self.producer.publish_failed(
-                event.model_dump(mode="json")
-            )
+        # if success:
+        #     event = TicketReserved(
+        #         event_id=event_id,
+        #         order_id=order_id,
+        #         occurred_at=now,
+        #     )
+        #     self.producer.publish_reserved(
+        #         event.model_dump(mode="json")
+        #     )
+        # else:
+        #     event = TicketReservationFailed(
+        #         event_id=event_id,
+        #         order_id=order_id,
+        #         reason="sold_out",
+        #         occurred_at=now,
+        #     )
+        #     self.producer.publish_failed(
+        #         event.model_dump(mode="json")
+        #     )
