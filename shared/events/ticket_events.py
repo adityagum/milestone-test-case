@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 class BaseEvent(BaseModel):
@@ -11,7 +11,7 @@ class BaseEvent(BaseModel):
     def new(cls, **kwargs):
         return cls(
             event_id=str(uuid.uuid4()),
-            occurred_at=datetime.now(datetime.timezone.utc),
+            occurred_at=datetime.now(timezone.utc),
             **kwargs
         )
 
