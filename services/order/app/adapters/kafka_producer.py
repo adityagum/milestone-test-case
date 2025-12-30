@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Dict, Any
 from kafka import KafkaProducer
 from shared.events.ticket_events import TicketReserveRequested
 
@@ -17,6 +18,6 @@ def publish_reserve_requested(event: TicketReserveRequested) -> None:
     _producer.send(
         _topic,
         key=event.order_id,        # key = order_id (partition affinity)
-        value=event.model_dump(mode="json"),
+        value=event,  # Pass the model directly, let serializer handle it
     )
     _producer.flush()
