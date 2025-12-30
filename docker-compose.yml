@@ -65,7 +65,7 @@ services:
       context: .
       dockerfile: services/inventory/Dockerfile
     environment:
-      DATABASE_URL: postgresql://app:app@postgres:5432/inventory
+      DATABASE_URL: postgresql://app:app@postgres:5432/flashsale
       KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
       KAFKA_TOPIC_RESERVE_REQUESTED: ticket_reserve_requested
       KAFKA_TOPIC_RESERVED: ticket_reserved
