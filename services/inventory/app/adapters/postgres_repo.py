@@ -50,3 +50,5 @@ class InventoryRepository:
                 success = cur.rowcount == 1
                 conn.commit()
                 return success
+            print("RESERVING EVENT_ID:", event_id)
+

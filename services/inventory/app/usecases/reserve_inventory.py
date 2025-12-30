@@ -11,7 +11,7 @@ class ReserveInventory:
 
     def execute(self, payload: dict) -> None:
         order_id = payload["order_id"]
-        event_id = payload["event_id"]
+        event_id = payload["event_id_ref"]
 
         # 1️⃣ Idempotency guard
         if self.repo.already_processed(order_id):
