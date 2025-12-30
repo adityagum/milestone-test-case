@@ -44,6 +44,20 @@ services:
       timeout: 5s
       retries: 5
 
+  order:
+    build: ./services/order
+    ports:
+      - "8001:8000"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      KAFKA_TOPIC_RESERVE_REQUESTED: ticket_reserve_requested
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   api:
     build: .
     depends_on:
