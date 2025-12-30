@@ -5,9 +5,9 @@ from shared.events.ticket_events import (
 )
 
 class ReserveInventory:
-    def __init__(self, repo, producer):
+    def __init__(self, repo):
         self.repo = repo
-        self.producer = producer
+        # self.producer = producer
 
     def execute(self, payload: dict) -> None:
         order_id = payload["order_id"]
