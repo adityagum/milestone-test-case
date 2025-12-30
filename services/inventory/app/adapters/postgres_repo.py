@@ -1,54 +1,30 @@
 import psycopg
-from contextlib import contextmanager
-from psycopg.rows import dict_row
 
-from app.domain.entities import Event
-from app.domain.errors import SoldOut
-from app.usecases.ports import EventRepository
-
-
-class PostgresEventRepository(EventRepository):
+class InventoryRepository:
     def __init__(self, dsn: str):
-        self.dsn = dsn
+        self._dsn = dsn
 
-    @contextmanager
-    def _conn(self):
-        with psycopg.connect(self.dsn, row_factory=dict_row) as conn:
-            yield conn
+    def reserve_atomic(self, event_id: str) -> bool:
+        with psycopg.connect(self._dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                  UPDATE events
+                  SET available_stock = available_stock - 1
+                  WHERE event_id = %s AND available_stock > 0
+                """, (event_id,))
+                return cur.rowcount == 1
 
-    def add(self, event: Event):
-        with self._conn() as conn, conn.transaction():
-            conn.execute(
-                """
-                INSERT INTO events (id, total_stock, available_stock, reserved_count)
-                VALUES (%s,%s,%s,%s)
-                ON CONFLICT (id) DO NOTHING
-                """,
-                (event.id, event.total_stock, event.available_stock, event.reserved_count),
-            )
+    def mark_processed(self, order_id: str) -> None:
+        with psycopg.connect(self._dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                  INSERT INTO processed_events(order_id)
+                  VALUES (%s)
+                  ON CONFLICT DO NOTHING
+                """, (order_id,))
 
-    def get(self, event_id: str):
-        with self._conn() as conn:
-            row = conn.execute(
-                "SELECT * FROM events WHERE id=%s", (event_id,)
-            ).fetchone()
-            return Event(**row) if row else None
-
-    def save(self, event: Event):
-        with self._conn() as conn, conn.transaction():
-            row = conn.execute(
-                """
-                UPDATE events
-                SET available_stock = available_stock - 1,
-                    reserved_count = reserved_count + 1
-                WHERE id=%s AND available_stock > 0
-                RETURNING *
-                """,
-                (event.id,),
-            ).fetchone()
-
-            if not row:
-                raise SoldOut()
-
-            event.available_stock = row["available_stock"]
-            event.reserved_count = row["reserved_count"]
+    def already_processed(self, order_id: str) -> bool:
+        with psycopg.connect(self._dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1 FROM processed_events WHERE order_id=%s", (order_id,))
+                return cur.fetchone() is not None

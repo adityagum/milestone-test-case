@@ -20,3 +20,20 @@ class TicketReserveRequested(BaseEvent):
     event_id_ref: str
     user_id: str
     quantity: int
+
+class TicketReserveRequested(BaseModel):
+    event_id: str
+    order_id: str
+    user_id: str
+    occurred_at: datetime
+
+class TicketReserved(BaseModel):
+    event_id: str
+    order_id: str
+    occurred_at: datetime
+
+class TicketReservationFailed(BaseModel):
+    event_id: str
+    order_id: str
+    reason: str
+    occurred_at: datetime

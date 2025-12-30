@@ -2,26 +2,23 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# System deps for psycopg / postgres
 RUN apt-get update && apt-get install -y \
-    libpq5 \
-    libpq-dev \
-    gcc \
+    libpq5 libpq-dev gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Install poetry
 RUN pip install poetry
 
-# Copy dependency files
-COPY pyproject.toml poetry.lock* ./
+# ⬇️ FIX PATH DEPENDENCY FILES
+COPY services/inventory/pyproject.toml ./pyproject.toml
+COPY services/inventory/poetry.lock ./poetry.lock
 
-# Install dependencies (no venv inside container)
 RUN poetry config virtualenvs.create false \
  && poetry install --only main --no-root --no-interaction --no-ansi
 
-# Copy application source
-COPY app ./app
+# ⬇️ FIX PATH SOURCE CODE
+COPY services/inventory/app ./app
+COPY shared ./shared
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.frameworks.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

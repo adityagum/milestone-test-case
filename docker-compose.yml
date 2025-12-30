@@ -60,24 +60,21 @@ services:
       redis:
         condition: service_healthy
 
-  api:
-    build: .
+  inventory:
+    build:
+      context: .
+      dockerfile: services/inventory/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://app:app@postgres:5432/inventory
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      KAFKA_TOPIC_RESERVE_REQUESTED: ticket_reserve_requested
+      KAFKA_TOPIC_RESERVED: ticket_reserved
+      KAFKA_TOPIC_FAILED: ticket_reservation_failed
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
       redpanda:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql://app:app@postgres:5432/flashsale
-      REDIS_URL: redis://redis:6379/0
-      RATE_LIMIT_PER_SEC: "20"
-      CACHE_TTL_SECONDS: "2"
-      IDEMPOTENCY_TTL_SECONDS: "300"
-      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
-    ports:
-      - "8000:8000"
 
 volumes:
   pgdata:
