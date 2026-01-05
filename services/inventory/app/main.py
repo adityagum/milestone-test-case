@@ -17,10 +17,18 @@ def main():
     repo = InventoryRepository(os.environ["DATABASE_URL"])
     usecase = ReserveInventory(repo)
 
+    BATCH_SIZE = 10
+    processed = 0
+
     for msg in consumer:
         print("Consumed message:", msg.value, flush=True)
+
         usecase.execute(msg.value)
-        consumer.commit()
+        processed += 1
+
+        if processed % BATCH_SIZE == 0:
+            consumer.commit()
+            print(f"Committed {processed} messages", flush=True)
 
 
 if __name__ == "__main__":
